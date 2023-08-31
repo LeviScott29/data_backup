@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# This checks if the number of arguments is correct
+# If the number of arguments is incorrect ( $# != 2) print error message and exit
+if [[ $# != 2 ]]
+then
+  echo "backup.sh target_directory_name destination_directory_name"
+  exit
+fi
+
+# This checks if argument 1 and argument 2 are valid directory paths
+if [[ ! -d $1 ]] || [[ ! -d $2 ]]
+then
+  echo "Invalid directory path provided"
+  exit
+fi
+
+targetDirectory=$1
+destinationDirectory=$2
+
+# displays value of aruments
+echo "$targetDirectory"
+echo "$destinationDirectory"
+
+# date time expressed in seconds
+currentTS=$($date +%s )
+
+# name of back up to to be created
+backupFileName="backup-[$currentTS].tar.gz"
+
+# holds absolute path of current directory
+origAbsPath=`pwd`
+
+# contains absolute path of destination directory
+cd $destinationDirectory
+destAbsPath=`pwd`
+
+# changes from current directory to target directory
+cd $origAbsPath
+cd $targetDirectory
+
+# creates time from 24 hours prior
+yesterdayTS= $((currentTS - 86400))
+
+declare -a toBackup
+#returns all files and directories in current folder
+for file in $(ls $targetDirectory)
+do
+   #checks if file was modified in last 24 hours and backs up if true
+  if ((`date -r $file +%s` > $yesterdayTS))
+  then
+
+    tobackup+=($file)
+  fi=()
+done
+
+# creates tarball with backup
+tar -czvf $backupFileName ${toBackup[@]}
+# moves backup file to destination file
+mv backupFileName $destAbsPath
